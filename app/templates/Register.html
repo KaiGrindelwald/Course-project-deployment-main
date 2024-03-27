@@ -1,0 +1,189 @@
+<!--/templates/Register.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIN</title>
+
+    <style>
+        @keyframes screenshotAnimation {
+            0% {
+              opacity: 0;
+              transform: scale(1.2);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image:url(../static/img/batman.png);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            animation: screenshotAnimation 2s ease-out forwards;
+        }
+        #registerFormDiv:hover,#loginFormDiv:hover {
+            transform: translateY(-5%);
+            transition: 1s;
+        }
+        #registerFormDiv,#loginFormDiv {
+            width: 300px;
+            color: #D3D3D3;
+            background-color: transparent;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 8px;
+        }
+        input {
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #41B3A3;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #000000;
+        }
+        button {
+            background-color: #202121;
+            color: #f4f6f7;
+            padding: 12px;
+            border: 10%;
+            border-radius: 40px;
+            border-color: transparent;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        button:hover {
+            border-color: azure;
+            background-color: #202121;
+            color: #f4f8f8;
+        }
+        p{
+            text-align: center;
+            margin-top: 16px;
+        }
+        a{
+            color: #ccd1d6;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration:none;
+        }
+        .register-link{
+            text-align: center;
+        }
+        .btn btn-link{
+            align-content:flex-end;
+            align-self: center;
+        }
+        .form-img {
+            width: 40%; 
+            height: auto; 
+            margin-right: 20%;
+            align-content: left;
+        }
+        @media(max-width: 480px){
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .form-img { 
+                width: 100%; 
+                margin: 20px;
+                display: block;
+                align-content: center;
+            }
+            .form-img img {
+                width: 100%;
+                display: block;
+                margin: 0 auto; 
+            }
+            #loginFormDiv, #registerFormDiv {
+                width: 70%; 
+                margin: auto; 
+                margin-top: 20px;
+                position: relative; 
+                margin-right: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <img src="../static/img/banana-trip.gif" alt="GIF" class="form-img">
+    <div id="loginFormDiv">
+        <form id="loginForm" action="/auth/login" method="POST">
+          <label for="username">Username:</label>
+          <input type="text" name="username" required>
+          <br>
+          <label for="password">Password:</label>
+          <input type="password" name="password" required>
+          <button type="submit" class="btn btn-primary" onclick="Home()">Login</button>
+        </form>
+        <p class="register-link">Not registered? <a href="#" onclick="toggleForms()">Register now</a></p>
+      </div>
+
+    <div id="registerFormDiv" style="display:none;">
+        <form action="/auth/register" method="POST">
+            <label for="name">Username:</label>
+            <input type="text" name="name" required>
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+            <button type="submit" onclick="Registering()">Register</button>
+        </form>
+        <p class="register-link">Already have an account? <a href="#" onclick="toggleForms()">Login</a></p>
+    </div>
+    
+</body>
+<script>
+    function toggleForms() {
+        var loginFormDiv = document.getElementById('loginFormDiv');
+        var registerFormDiv = document.getElementById('registerFormDiv');
+      
+        if (loginFormDiv.style.display === 'none') {
+          loginFormDiv.style.display = 'block';
+          registerFormDiv.style.display = 'none';
+        } else {
+          loginFormDiv.style.display = 'none';
+          registerFormDiv.style.display = 'block';
+        }
+      }
+      function Home() {
+        var username = document.getElementById('loginUsername').value;
+        var password = document.getElementById('loginPassword').value;
+        // if (username == "user" && password == "1234") {
+        //     window.location.href = "/index2";
+        //     alert("Welcome user");
+        // } else if (username == "admin" && password == "admin") {
+        //     window.location.href = "/admin";
+        //     alert("Welcome Admin");
+        // } /*else {
+            // alert("Incorrect username or password");
+        // }*/
+    }
+    function Registering() {
+        var username = document.getElementById('name').value;
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        var userData = {
+            name: username,
+            email: email,
+            password: password
+        };
+    }
+</script>
+</html>

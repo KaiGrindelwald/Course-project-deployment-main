@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN DATABASE</title>
+</head>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-image: url(../static/img/admin-background.jpg);
+        color: #ffffff;
+        background-repeat: no-repeat;
+        background-size: cover;
+        min-height: 100vh; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .user-screen {
+        width:60%;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    .user-screen p {
+        margin: 10px 0;
+        padding: 5px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+<body>
+    <div class="user-screen">
+        <h1 style="text-align: center;">Users</h1>
+        {% for user in users_data %}
+        <p>{{ user[0] }} {{ user[1] }}</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAKE YOUR VIDEO</title>
+    <!-- MDB CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: start;
+            height: 100vh;
+            color: #ffffff;
+        }
+        .container-fluid {
+            max-width: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding-top: 60px;
+        }
+        .row {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+        }
+        #heading {
+            text-align: center;
+            color: aliceblue;
+            position: fixed;
+            width: 100%;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+        #dropArea {
+            width: 200px;
+            height: 200px;
+            border: 4px dashed #777;
+            border-radius: 10px;
+            background-color: #333;
+            text-align: center;
+            padding: 20px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            margin: 20px 0;
+            color: #ccc;
+        }
+        #dropArea.dragover {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        .btn {
+            background-color: #121212;
+            color: #777;
+            border: 2px solid #333;
+            margin: 10px 0;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #333;
+            color: #fff;
+        }
+        #cancelButton:hover {
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        #createVideoButton:hover {
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+        #preview {
+            width: 50vw;
+            height: 30vw;
+            max-width: 600px;
+            max-height: 400px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin: 20px 0;
+            background-color: #222;
+            position: relative;
+            z-index: 2;
+        }
+        .image-grid {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 10px;
+            justify-content: center;
+        }
+        .image-grid img {
+            max-width: 200px;
+            max-height: 200px;
+            margin-right: 10px;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #heading, #cancelButton, #createVideoButton {
+                position: relative;
+                margin: 10px 0;
+            }
+            #preview {
+                width: 80vw;
+                height: auto;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div id="alertPlaceholder"></div> <!-- Placeholder for alerts -->
+    <h1 id="heading">MAKE YOUR VIDEO HERE</h1>
+    <div class="row">
+        <!-- Button Column -->
+        <div class="col-md-2 d-flex flex-column align-items-center">
+            <form id="musicUploadForm" action="/audio/upload_audio" method="POST" enctype="multipart/form-data">
+                <input type="file" id="musicFile" name="file" style="display: none;" accept=".mp3,.wav">
+                <label for="musicFile" class="btn btn-primary">Upload Music</label>
+            </form>       
+            <div class="form-group">
+                <label for="transitionSelect">Transition Effects</label>
+                <select class="form-control" id="transitionSelect">
+                    <!-- Options will be added by JavaScript -->
+                </select>
+            </div> 
+            <button id="confirmTransitionButton" class="btn btn-primary">Confirm Transition</button>           
+            <div id="dropArea" class="text-center"
+                    ondragover="event.preventDefault(); event.target.classList.add('dragover')"
+                    ondragenter="event.target.classList.add('dragover')"
+                    ondragleave="event.target.classList.remove('dragover')"
+                    ondrop="handleDrop(event)">
+                    <p><i class="icon fas fa-cloud-upload-alt"></i><br>Drag and drop images here</p>
+                </div>
+                <form id="imageUploadForm" action="/image/upload" method="POST" enctype="multipart/form-data">
+                    <input type="file" id="photo" name="photo" style="display: none;">
+                    <label for="photo" class="btn btn-primary">Choose Photo</label>
+                    <button type="button" onclick="document.getElementById('photo').click();" class="btn btn-primary">Choose File</button>
+                </form>
+            </div>
+
+        <!-- Video Preview and Controls -->
+        <div class="col-md-8 d-flex flex-column align-items-center justify-content-center">
+            <div id="preview" class="text-center my-3">
+                <!-- Placeholder for Video Preview -->
+            </div>
+            <!-- Control Buttons -->
+            <div class="btn-group my-3" role="group">
+                <button id="playButton" type="button" class="btn btn-secondary">Preview</button>
+                <button id="pauseButton" type="button" class="btn btn-secondary">Pause</button>
+                <button id="undoButton" type="button" class="btn btn-danger">Undo</button>
+            </div>
+        </div>
+
+        <!-- Top Right and Bottom Right Buttons -->
+        <div class="col-md-2 d-flex flex-column justify-content-between">
+            <a href="/index2" class="btn btn-danger" id="cancelButton">Cancel</a>
+            <a href="/success" class="btn btn-success" id="createVideoButton">Create Video</a>
+        </div>
+    </div>
+    <!-- Image Grid Container -->
+    <div class="image-grid">
+        <!-- Images will be dynamically added here -->
+    </div>
+    <button id="selectImageButton" class="btn btn-primary">Select Image</button>
+</div>
+    
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    var transitions = [
+    { id: 'none', name: 'None' },
+    { id: 'fade', name: 'Fade' },
+    { id: 'wipe', name: 'Wipe' },
+    { id: 'crossfade', name: 'Crossfade' },
+    { id: 'blackfade', name: 'Black Fade' },
+    { id: 'slideright', name: 'Slide Right' },
+    { id: 'slideleft', name: 'Slide Left' },
+    // Add more transitions as needed
+    ];
+    let actionId = 0;
+    var videoComposition = []; // Tracks the current state of video composition
+    var transitionsArray = []; // Tracks the transitions applied between images
+    
+
+    function undoLastCompositionChange() {
+        if (videoComposition.length === 0) {
+            showAlert('No more changes to undo', 'warning');
+            return;
+        }
+        videoComposition.pop(); // Remove the last action
+        transitionsArray,pop(); // Remove the last transition
+        updateVideoPreview(); // Refresh the video preview based on the updated composition
+    }
+
+
+    function updateVideoPreview() {
+    // Assuming `videoComposition` is structured in a way that the backend can understand
+    // and that you have a way to serialize it as needed (e.g., JSON).
+    // This example assumes the backend understands the direct structure of `videoComposition`.
+
+    // Convert `videoComposition` to a format suitable for your backend if necessary.
+    // For the given Python script, it seems the backend primarily operates based on the database state
+    // associated with the user's session, so this might just trigger the preview generation.
+    $.ajax({
+        url: 'video/preview', // Endpoint to generate video preview
+        type: 'POST',
+        contentType: "application/json",
+        data: JSON.stringify({ 
+                    composition: videoComposition,
+                    transitions: transitionsArray // Sending transitions array with the request
+                }), // Example; adjust based on actual backend expectations
+        success: function(response) {
+            // Assuming the response contains a video URL
+            if (response.status === "success") {
+                // Update the video preview element in your HTML
+                const previewElement = $('#preview');
+                previewElement.empty(); // Clear any existing content
+                const videoElement = $('<video controls autoplay>').append($('<source>').attr('src', response.video_url).attr('type', 'video/mp4'));
+                previewElement.append(videoElement);
+                showAlert('Preview video ready!', 'success');
+            } else {
+                showAlert('Failed to generate preview. Please try again.', 'danger');
+            }
+        },
+        error: function(xhr, status, error) {
+            showAlert(`Failed to generate preview: ${error}`, 'danger');
+        }
+    });
+}
+
+
+    // Example of handling image selection for the video composition
+    
+
+    $('#undoButton').click(function() {
+        undoLastCompositionChange();
+    });
+
+
+    //very imp function which handles all error cases using prompts to the user
+    function showAlert(message, type, includeProgressBar = false) {
+        const alertPlaceholder = $('#alertPlaceholder');
+        // Clear any existing alerts first
+        alertPlaceholder.empty();
+        let content = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}`;
+
+        if (includeProgressBar) {
+            // Adding a progress bar to the alert when required
+            content += `
+                <div class="progress" style="margin-top: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                </div>`;
+        }
+
+        content += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                '<span aria-hidden="true">&times;</span></button></div>';
+        
+        alertPlaceholder.html(content);
+    }
+
+    // Function to update the progress bar, will be called during AJAX requests
+    function updateProgressBar(percentage) {
+        $('.progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+    }
+
+    // function setupImageClicks() {
+    //     $('.image-grid').on('click', '.selectable-image', function() {
+    //         var imgSrc = $(this).attr('src');
+    //         $('#preview').html(`<img src="${imgSrc}" style="max-width:100%; max-height:100%;">`);
+    //         // Store the selected image's ID or src in a variable or data attribute for later use
+    //         $('#preview').data('selectedImageSrc', imgSrc);
+    //     });
+    // }
+        
+    $(document).ready(function() {  
+        fetchAndRenderImages(); // This function needs to be defined to fetch images and render them in the grid.
+        transitions.forEach(function(transition) {
+            $('#transitionSelect').append(new Option(transition.name, transition.id));
+        });
+
+        // Music file upload handler
+        $('#musicFile').change(function(e) {
+            var formData = new FormData();
+            formData.append('file', $(this)[0].files[0]);
+            $.ajax({
+                url: '/audio/upload_audio',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function() { // Custom XMLHttpRequest
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function(evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = (evt.loaded / evt.total) * 100;
+                            // Update the progress bar with the current percentage
+                            updateProgressBar(percentComplete);
+                        }
+                    }, false);
+                    return xhr;
+                },
+                beforeSend: function() {
+                    // Display progress bar at the start of the upload
+                    showAlert('Uploading music...', 'info', true);
+                },
+                success: function(response) {
+                    // Update to indicate completion and refresh the video preview
+                    updateProgressBar(100); // Ensure progress bar shows completion
+                    showAlert('Music upload successful!', 'success');
+                    //addToComposition('music', { musicUrl: response.musicUrl, details: response.details });
+                    
+                },
+                error: function(xhr, status, error) {
+                    var errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Music upload failed. Please try again.';
+                    showAlert(errorMessage, 'danger');
+                }
+            });
+        });
+    
+        // Photo upload handler
+        $('#photo').change(function(e) {
+            var formData = new FormData($('#imageUploadForm')[0]);
+            $.ajax({
+                url: '/image/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function(evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = (evt.loaded / evt.total) * 100;
+                            updateProgressBar(percentComplete);
+                        }
+                    }, false);
+                    return xhr;
+                },
+                beforeSend: function() {
+                    showAlert('Uploading image...', 'info', true);
+                },
+                success: function(response) {
+                    updateProgressBar(100);
+                    fetchAndRenderImages();
+                    showAlert('Image upload successful!', 'success');
+                },
+                error: function() {
+                    showAlert('Image upload failed. Please try again.', 'danger');
+                }
+            });
+        });
+        
+        // Play (Preview) button functionality
+        $('#playButton').click(function() {
+            $.ajax({
+                url: '/video/preview',
+                type: 'POST',
+                contentType: "application/json",
+                data: JSON.stringify({ 
+                    composition: videoComposition,
+                    transitions: transitionsArray // Sending transitions array with the request
+                }),
+                success: function(response) {
+                    showAlert('Preview video ready!', 'success');
+                    $('#preview').html(`<video controls autoplay><source src="${response.video_url}" type="video/mp4"></video>`);
+                },
+                error: function(response) {
+                    showAlert('Failed to generate preview. Please try again.', 'danger');
+                }
+            });
+        });
+
+        // Create Video button click event
+        $('#createVideoButton').click(function() {
+            $.ajax({
+                url: '/video/create_final',
+                type: 'POST',
+                contentType: "application/json",
+                data: JSON.stringify({ 
+                    composition: videoComposition,
+                    transitions: transitionsArray // Sending transitions array with the request
+                }),
+                success: function(response) {
+                    showAlert('Video successfully created!', 'success');
+                    // Provide a link for downloading the final video
+                    var downloadLink = $('<a>').attr('href', response.video_url).text('Download Video').addClass('btn btn-success');
+                    $('#preview').html(downloadLink);
+                },
+                error: function(response) {
+                    showAlert('Failed to create the final video. Please try again.', 'danger');
+                }
+            });
+        });
+        
+        
+        $('#pauseButton').click(function() {
+            var videoElement = $('video')[0];
+            if (videoElement.paused || videoElement.ended) {
+                videoElement.play(); // Play the video if it's paused or ended
+                $(this).text('Pause'); // Change the button text to "Pause"
+            } else {
+                videoElement.pause(); // Pause the video if it's playing
+                $(this).text('Play'); // Change the button text to "Play"
+            }
+        });
+
+        
+    });
+    //function handleDrop(event) {
+        //event.preventDefault();
+        //event.stopPropagation();
+        //$('#dropArea').removeClass('dragover'); // Visual feedback
+
+        //var files = event.dataTransfer.files;
+        //if (files.length > 0) {
+           // var formData = new FormData();
+            //formData.append('photo', files[0]); // Assume single file drop
+
+            // AJAX request to upload the file
+            //$.ajax({
+              //  url: '/image/upload',
+              //  type: 'POST',
+               // data: formData,
+               // processData: false, // Don't process files
+               // contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+              //  success: function(response) {
+              //      showAlert('Image upload successful!', 'success');
+                //    addToComposition('image', { imageId: response.imageId, imageUrl: response.imageUrl }); // Assuming server response includes imageId and imageUrl
+                //},
+                //error: function(xhr, status, error) {
+                   // showAlert('Image upload failed. Please try again.', 'danger');
+                //}
+            //});
+        //}
+    //} 
+ 
+    function handleDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $('#dropArea').removeClass('dragover'); // Visual feedback
+    
+        var files = event.dataTransfer.files;
+        if (files.length > 0) {
+            var formData = new FormData();
+            formData.append('photo', files[0]); // Assume single file drop
+    
+            // AJAX request to upload the file
+            $.ajax({
+                url: '/image/upload',
+                type: 'POST',
+                data: formData,
+                processData: false, // Don't process files
+                contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+                success: function(response) {
+                    fetchAndRenderImages();
+                    showAlert('Image upload successful!', 'success');
+                    // Optionally, you can perform further actions after the image is successfully uploaded
+                },
+                error: function(xhr, status, error) {
+                    showAlert('Image upload failed. Please try again.', 'danger');
+                }
+            });
+        }
+    }
+    let selectedImageId = null; // Variable to store the ID of the selected image
+
+    // Separated function to setup image selection
+    function setupImageSelection() {
+        $('.image-grid').on('click', '.selectable-image', function() {
+            $('.selectable-image').removeClass('selected'); // Remove 'selected' class from all images
+            $(this).addClass('selected'); // Add 'selected' class to clicked image
+            selectedImageId = $(this).data('image-id'); // Update selectedImageId with the ID of clicked image
+            
+            // Store the clicked image's src and display it in the #preview area
+            var selectedImageSrc = $(this).attr('src');
+            $('#preview').data('selectedImageSrc', selectedImageSrc); // Store the clicked image's src
+            
+            // Update the #preview container to display the selected image
+            $('#preview').html(`<img src="${selectedImageSrc}" style="max-width:100%; max-height:100%;">`);
+        });
+    }
+
+
+    // Function to fetch and render images from the server
+    function fetchAndRenderImages() {
+        // Clear existing images from the grid
+        $('.image-grid').empty();
+        $.ajax({
+            url: '/image/fetch_user_images', // Endpoint to fetch user images
+            type: 'GET',
+            success: function(response) {
+                response.images.forEach(function(image) {
+                    const imageElement = $(`<img src="data:image/jpeg;base64,${image.image_blob}" data-image-id="${image.id}" class="selectable-image" style="cursor:pointer; width: 100px; height: 100px; margin: 5px;">`);
+                    $('.image-grid').append(imageElement);
+                });
+        
+                // Update: Move event listener setup outside of the success callback to ensure it's set up properly
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching images:', error);
+            }
+        }).then(function() {
+            // Add click event listener to images for selection after they are fetched and rendered
+            setupImageSelection();
+        });
+    }
+
+
+    //to confirm transitions
+    $('#confirmTransitionButton').click(function() {
+        try {
+            // Check if an image has been selected before adding a transition
+            if (selectedImageId == null) {
+                // Show an error message if no image has been selected
+                showAlert('Please select an image before adding a transition.', 'danger');
+            } 
+            if(videoComposition.length === 1){
+                showAlert('Please select 2 images before adding a transition.', 'danger');
+            }
+            else {
+                var selectedTransition = $('#transitionSelect').val();
+                // if (!selectedTransition || selectedTransition === 'none') {
+                //     throw new Error('Invalid transition selected.');
+                // }
+                transitionsArray.push(selectedTransition); // Add selected transition to array
+                showAlert('Transition added!', 'success');
+                if(videoComposition.length > 1){
+                    updateVideoPreview();
+                }
+                // Reset the transition selector to "None" after selection
+                $('#transitionSelect').val('none');
+            }
+        } catch (error) {
+            // Handle any errors that might occur during the transition addition process
+            showAlert(`Error: ${error.message}`, 'danger');
+        }
+    });
+
+
+    // Revised "Select Image" button functionality
+    $('#selectImageButton').click(function() {
+        if (selectedImageId != null) {
+            var selectedImageSrc = $('#preview').data('selectedImageSrc');
+            // Add selected image to videoComposition array
+            videoComposition.push({type: 'image', src: selectedImageSrc});
+            if(videoComposition.length > 1){
+                showAlert('Image added! Please select a transition for this image.', 'success');
+            }
+            else{
+                showAlert('Image added! Please add another image to add transitions.', 'success');
+            }
+            
+            // Prompt the user to select a transition
+            // Implementation depends on your application's flow
+        } else {
+            showAlert('No image selected!', 'warning');
+        }
+    });
+
+
+
+</script>    
+</body>
+</html>
