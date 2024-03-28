@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" />
     <!-- MDB -->
     <link rel="stylesheet" href="../static/css/mdb.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
         body {
             font-family: "Roboto", sans-serif;
@@ -111,7 +112,7 @@
                 <option value="option3">117</option>
             </select>
         </div>
-        <a href="#" class="button">DOWNLOAD YOUR VIDEO NOW</a>
+        <a href="#" class="button" id="downloadButton">DOWNLOAD YOUR VIDEO NOW</a>
     </div>
     <!-- MDB -->
     <script type="text/javascript" src="../js/mdb.umd.min.js"></script>
@@ -126,6 +127,24 @@
             var dropdown = document.querySelector('.dropdown');
             dropdown.classList.remove('select-open');
         }
+        function downloadVideo() {
+            // Construct the URL of the final video on the server
+            var videoUrl = '/static/uploads/temp_preview.mp4'; // Adjust the path if necessary
+            
+            // Create a temporary anchor element
+            var a = document.createElement('a');
+            a.href = videoUrl;
+            a.download = 'temp_preview.mp4'; // Set the filename for the downloaded file
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click(); // Simulate a click on the anchor element to trigger the download
+            // Clean up: remove the temporary anchor element from the DOM
+            document.body.removeChild(a);
+        }
+
+        // Attach the downloadVideo function to the click event of the download button
+        $('#downloadButton').click(downloadVideo);
+    ;
     </script>
 </body>
 </html>
