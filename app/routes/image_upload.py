@@ -9,7 +9,6 @@ import traceback
 image_upload_blueprint = Blueprint('image', __name__)
 
 # Assuming you've properly configured DATABASE_URL in your environment variables
-conn = psycopg2.connect(os.environ["DATABASE_URL"])
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -33,6 +32,7 @@ def upload():
     image_blob = file.read()
 
     try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         cur = conn.cursor()
         cur.execute("SELECT id FROM users WHERE username = %s", (username,))
         user_id = cur.fetchone()[0]
@@ -51,6 +51,7 @@ def upload():
         return jsonify({"status": "error", "message": "Failed to upload image: " + str(e)}), 500
     finally:
         cur.close()
+        conn.close()
 
 # def fetch_images_from_db():
 #     cur = conn.cursor()
@@ -69,6 +70,7 @@ def fetch_user_images():
     username = session['username']
 
     try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         cur = conn.cursor()
         cur.execute("SELECT images.id, images.image_path, images.image_blob FROM images INNER JOIN users ON images.user_id = users.id WHERE users.username = %s", (username,))
         images = cur.fetchall()
@@ -89,6 +91,7 @@ def fetch_user_images():
     finally:
         if 'cur' in locals() and cur is not None:
             cur.close()
+            conn.close()
 
 # Define endpoint to fetch images
 # @image_upload_blueprint.route('/fetch_images', methods=['GET'])
