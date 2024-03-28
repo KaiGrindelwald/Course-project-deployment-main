@@ -23,6 +23,8 @@ def register():
     hashed_password = generate_password_hash(password)
 
     # Connect to CockroachDB
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+
     cur = conn.cursor()
 
     # Check if the username already exists
