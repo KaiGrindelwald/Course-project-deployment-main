@@ -40,10 +40,11 @@ def register():
         return jsonify({'message': 'Registration failed', 'error': str(e)}), 500
     finally:
         cur.close()
-        # conn.close()
+        conn.close()
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
+    conn=psycopg2.connect(os.environ["DATABASE_URL"])
     username = request.form['username']  # Changed from email to username
     password = request.form['password']
     if username=="admin" and password=="admin":
@@ -53,7 +54,7 @@ def login():
     cur.execute("SELECT id, username, password_hash FROM users WHERE username = %s",(username,))
     user = cur.fetchone()
     cur.close()
-    # conn.close()
+    conn.close()
 
     #user[2] is the correct index, ask me for clarification
     if user and check_password_hash(user[2], password):  # Adjusted index to match the username's position in the fetchone result
@@ -71,9 +72,10 @@ def login():
 @auth_blueprint.route('/users')
 def users():
     # conn = connect_to_cockroachdb()
+        conn=psycopg2.connect(os.environ["DATABASE_URL"])
         cur = conn.cursor()
         cur.execute("SELECT username, email FROM users")
         users_data = cur.fetchall()
         cur.close()
-        # conn.close()
+        conn.close()
         return render_template('Admin.html', users_data=users_data)
