@@ -8,7 +8,6 @@ import base64
 audio_blueprint = Blueprint('audio', __name__)
 
 # Assuming you've properly configured DATABASE_URL in your environment variables
-conn = psycopg2.connect(os.environ["DATABASE_URL"])
 
 ALLOWED_EXTENSIONS = {'mp3', 'wav'}
 
@@ -32,6 +31,7 @@ def upload_audio():
     audio_blob = file.read()
 
     try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         cur = conn.cursor()
         cur.execute("SELECT id FROM users WHERE username = %s", (username,))
         user_id = cur.fetchone()[0]
@@ -50,6 +50,7 @@ def upload_audio():
         return jsonify({"status": "error", "message": "Failed to upload audio: " + str(e)}), 500
     finally:
         cur.close()
+        conn.close()
 
 @audio_blueprint.route('/fetch_user_audios', methods=['GET'])
 def fetch_user_audios():
@@ -59,6 +60,7 @@ def fetch_user_audios():
     username = session['username']
 
     try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         cur = conn.cursor()
         cur.execute("SELECT id, audio_path FROM audio_library INNER JOIN users ON audio_library.user_id = users.id WHERE users.username = %s", (username,))
         audios = cur.fetchall()
@@ -70,3 +72,4 @@ def fetch_user_audios():
         return jsonify({"status": "error", "message": "Failed to fetch audios: " + str(e)}), 500
     finally:
         cur.close()
+        conn.close()
