@@ -215,7 +215,7 @@
     // Assuming `videoComposition` is structured in a way that the backend can understand
     // and that you have a way to serialize it as needed (e.g., JSON).
     // This example assumes the backend understands the direct structure of `videoComposition`.
-
+ 
     // Convert `videoComposition` to a format suitable for your backend if necessary.
     // For the given Python script, it seems the backend primarily operates based on the database state
     // associated with the user's session, so this might just trigger the preview generation.
@@ -544,7 +544,7 @@
                 transitionsArray.push(selectedTransition); // Add selected transition to array
                 showAlert('Transition added!', 'success');
                 if(videoComposition.length > 1){
-                    updateVideoPreview();
+                    showAlert('Transition added. Preview video can be generated!', 'success');
                 }
                 // Reset the transition selector to "None" after selection
                 $('#transitionSelect').val('none');
